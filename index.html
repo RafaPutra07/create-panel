@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Creator - Public/Private</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>PANEL RAFA</h1>
+    <form id="createServerForm">
+      <label for="accessKey">Access Key</label>
+      <input type="password" id="accessKey" required />
+
+      <label for="username">Username</label>
+      <input type="text" id="username" required />
+
+      <label for="serverName">Nama Server</label>
+      <input type="text" id="serverName" required />
+
+      <label for="package">Paket</label>
+      <select id="package">
+        <option value="1024">1GB</option>
+        <option value="2048">2GB</option>
+        <option value="3072">3GB</option>
+        <option value="4096">4GB</option>
+        <option value="5120">5GB</option>
+        <option value="6144">6GB</option>
+        <option value="7168">7GB</option>
+        <option value="8192">8GB</option>
+        <option value="9216">9GB</option>
+        <option value="10240">10GB</option>
+        <option value="unlimited">Unlimited</option>
+      </select>
+
+      <input type="hidden" id="panelType" value="private" />
+      <button type="submit">Buat Server</button>
+    </form>
+    <div id="result" class="output"></div>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>
