@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Creator - Public/Private</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #161b22;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    }
+    h1 {
+      text-align: center;
+      color: #58a6ff;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      margin-top: 15px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background-color: #21262d;
+      color: #c9d1d9;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border: 1px solid #58a6ff;
+      box-shadow: 0 0 5px #58a6ff;
+    }
+    button {
+      margin-top: 25px;
+      background-color: #238636;
+      color: white;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #2ea043;
+    }
+    .output {
+      margin-top: 25px;
+      white-space: pre-line;
+      background-color: #0d1117;
+      padding: 1em;
+      border-radius: 10px;
+      border: 1px solid #30363d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PANEL RAFA</h1>
+    <form id="createServerForm">
+      <label for="accessKey">Access Key</label>
+      <input type="password" id="accessKey" required />
+
+      <label for="username">Username</label>
+      <input type="text" id="username" required />
+
+      <label for="serverName">Nama Server</label>
+      <input type="text" id="serverName" required />
+
+      <label for="package">Paket</label>
+      <select id="package">
+        <option value="1024">1GB</option>
+        <option value="2048">2GB</option>
+        <option value="3072">3GB</option>
+        <option value="4096">4GB</option>
+        <option value="5120">5GB</option>
+        <option value="6144">6GB</option>
+        <option value="7168">7GB</option>
+        <option value="8192">8GB</option>
+        <option value="9216">9GB</option>
+        <option value="10240">10GB</option>
+        <option value="unlimited">Unlimited</option>
+      </select>
+
+      <input type="hidden" id="panelType" value="private" />
+
+      <button type="submit">Buat Server</button>
+    </form>
+    <div id="result" class="output"></div>
+  </div>
+
+  <script>
+    const global = {
+      egg: "15",
+      nestid: "5",
+      loc: "1",
+      domain: "https://inouehost.adp44.zans.biz.id",
+      apikey: "ptla_66BJts1cORqOe3yPTPdgDypV7FGoRPUImRmUSDHTdz2",
+      capikey: "ptlc_1QxkeBq0565qXRwxEMTptvSlY6JMiUTjyJkHJOIKpxo",
+      accesskey: "ptla_66BJts1cORqOe3yPTPdgDypV7FGoRPUImRmUSDHTdz2"
+    };
+
+    document.getElementById("createServerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const accessKey = document.getElementById("accessKey").value.trim();
+      const username = document.getElementById("username").value;
+      const serverName = document.getElementById("serverName").value;
+      const selectedPackage = document.getElementById("package").value;
+      const selectedPanelType = document.getElementById("panelType").value;
+
+      if (accessKey !== global.accesskey) {
+        alert("Access key salah!");
+        return;
+      }
+
+      try {
+        const userRes = await fetch(`${global.domain}/api/application/users`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${global.apikey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'Application/vnd.pterodactyl.v1+json'
+          },
+          body: JSON.stringify({
+            username,
+            email: `${username}@autogen.local`,
+            first_name: username,
+            last_name: "User"
+          })
+        });
+
+        const user = await userRes.json();
+
+        const limits = selectedPackage === 'unlimited' ? {
+          memory: 0, disk: 0, swap: 0, io: 500, cpu: 0
+        } : {
+          memory: parseInt(selectedPackage),
+          disk: 10240,
+          swap: 0,
+          io: 500,
+          cpu: 100
+        };
+
+        const serverRes = await fetch(`${global.domain}/api/application/servers`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${global.apikey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'Application/vnd.pterodactyl.v1+json'
+          },
+          body: JSON.stringify({
+            name: serverName,
+            user: user.attributes.id,
+            egg: global.egg,
+            nest: global.nestid,
+            allocation: { default: global.loc },
+            docker_image: "ghcr.io/parkervcp/yolks:nodejs_18",
+            startup: "npm install --force && node index.js",
+            environment: { USER_UPLOAD: "1" },
+            limits,
+            feature_limits: { databases: 1, backups: 1, allocations: 1 }
+          })
+        });
+
+        const server = await serverRes.json();
+
+        const password = Math.random().toString(36).slice(-8);
+        const output = `==============================\n   DETAIL AKUN PANEL ANDA   \n==============================\nUsername: ${username}\nPassword: ${password}\nPaket: ${selectedPackage === 'unlimited' ? 'Unlimited' : selectedPackage / 1024 + 'GB'}\nTipe Panel: ${selectedPanelType.toUpperCase()}\nID User: ${user.attributes.id}\nServer ID: ${server.attributes.id}\nDomain: ${global.domain}\n==============================`;
+
+        document.getElementById("result").textContent = output;
+      } catch (error) {
+        alert("Gagal membuat user atau server. Periksa API Key dan koneksi.");
+        console.error(error);
+      }
+    });
+  </script>
+</body>
+</html>
