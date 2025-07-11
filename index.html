@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Creator - Public/Private</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background-color: #161b22;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+    h1 {
+      text-align: center;
+      color: #58a6ff;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      margin-top: 15px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      font-size: 14px;
+    }
+    button {
+      background-color: #2ea043;
+      color: white;
+      margin-top: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #238636;
+    }
+    .output {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background-color: #21262d;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      border: 1px solid #30363d;
+    }
+  </style>
+  <script>
+    const API_BASE = "https://create-panel-gamma.vercel.app";
+
+    async function handleFormSubmit(event) {
+      event.preventDefault();
+
+      const accessKey = document.getElementById('accessKey').value;
+      const username = document.getElementById('username').value;
+      const serverName = document.getElementById('serverName').value;
+      const packageValue = document.getElementById('package').value;
+      const panelType = document.getElementById('panelType').value;
+
+      const resultBox = document.getElementById('result');
+      resultBox.textContent = "Membuat server...";
+
+      const ram = packageValue === "unlimited" ? 0 : parseInt(packageValue);
+      const disk = packageValue === "unlimited" ? 0 : parseInt(packageValue);
+      const cpu = packageValue === "unlimited" ? 0 : 100;
+
+      const url = `${API_BASE}/api/create-panel?accessKey=${encodeURIComponent(accessKey)}&username=${encodeURIComponent(username)}&ram=${ram}&disk=${disk}&cpu=${cpu}&hostingPackage=${packageValue}&panelType=${panelType}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!res.ok || !data.status) {
+          throw new Error(data.message || 'Gagal membuat server.');
+        }
+
+        const r = data.result;
+        resultBox.innerHTML = `
+==============================
+   DETAIL AKUN PANEL ANDA   
+==============================
+Username: ${r.username}
+Password: ${r.password}
+Paket: ${packageValue.toUpperCase()}
+Tipe Panel: ${panelType.toUpperCase()}
+ID User: ${r.id_user}
+Server ID: ${r.id_server}
+Domain: ${r.domain}
+==============================
+        `;
+      } catch (err) {
+        console.error(err);
+        resultBox.textContent = "Gagal membuat user atau server. Periksa API Key dan koneksi.";
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("createServerForm").addEventListener("submit", handleFormSubmit);
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>PANEL RAFA</h1>
+    <form id="createServerForm">
+      <label for="accessKey">Access Key</label>
+      <input type="password" id="accessKey" required />
+
+      <label for="username">Username</label>
+      <input type="text" id="username" required />
+
+      <label for="serverName">Nama Server</label>
+      <input type="text" id="serverName" required />
+
+      <label for="package">Paket</label>
+      <select id="package">
+        <option value="1024">1GB</option>
+        <option value="2048">2GB</option>
+        <option value="3072">3GB</option>
+        <option value="4096">4GB</option>
+        <option value="5120">5GB</option>
+        <option value="6144">6GB</option>
+        <option value="7168">7GB</option>
+        <option value="8192">8GB</option>
+        <option value="9216">9GB</option>
+        <option value="10240">10GB</option>
+        <option value="unlimited">Unlimited</option>
+      </select>
+
+      <input type="hidden" id="panelType" value="private" />
+
+      <button type="submit">Buat Server</button>
+    </form>
+    <div id="result" class="output"></div>
+  </div>
+</body>
+</html>
